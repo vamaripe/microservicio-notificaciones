@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-indexes-001
+      author: jesus-gonzalez
+      labels: "ddl,base,indexes"
+      comment: Lookup indexes for sent_notification.
+      changes:
+        - sqlFile: {path: 001_notification_indexes.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/10_indexes/001_notification_indexes.rollback.sql, relativeToChangelogFile: true, stripComments: false}
+  - changeSet:
+      id: notification-indexes-002
+      author: jesus-gonzalez
+      labels: "ddl,additive,outbox"
+      comment: HU-NOTIF-002 - Poll index for unpublished outbox rows.
+      changes:
+        - sqlFile: {path: 002_outbox_indexes.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/10_indexes/002_outbox_indexes.rollback.sql, relativeToChangelogFile: true, stripComments: false}
+  - changeSet:
+      id: notification-indexes-003
+      author: jesus-gonzalez
+      labels: "ddl,additive,idempotency"
+      comment: HU-NOTIF-002 - Unique index on sent_notification.source_event_id for idempotent inbound event consumption.
+      changes:
+        - sqlFile: {path: 003_sent_notification_idempotency_index.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/10_indexes/003_sent_notification_idempotency_index.rollback.sql, relativeToChangelogFile: true, stripComments: false}

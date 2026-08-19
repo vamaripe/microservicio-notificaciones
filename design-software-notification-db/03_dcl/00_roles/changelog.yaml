@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-dcl-roles-001
+      author: jesus-gonzalez
+      labels: "dcl,roles"
+      comment: Roles reader/writer/admin del dominio notification.
+      changes:
+        - sqlFile: {path: 001_create_roles.sql, relativeToChangelogFile: true, splitStatements: false, stripComments: false}
+      rollback:
+        - sql: {sql: "DROP ROLE IF EXISTS notification_reader; DROP ROLE IF EXISTS notification_writer; DROP ROLE IF EXISTS notification_admin;"}

@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-ext-001
+      author: jesus-gonzalez
+      labels: "ddl,base,extensions"
+      comment: Enables pgcrypto for gen_random_uuid in notification.
+      changes:
+        - sqlFile: {path: 001_enable_pgcrypto.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/00_extensions/001_enable_pgcrypto.rollback.sql, relativeToChangelogFile: true, stripComments: false}

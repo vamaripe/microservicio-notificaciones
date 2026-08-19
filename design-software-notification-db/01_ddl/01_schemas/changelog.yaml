@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-schema-001
+      author: jesus-gonzalez
+      labels: "ddl,base,schemas"
+      comment: Creates the notification schema (transversal capability, ADR-005).
+      changes:
+        - sqlFile: {path: 001_create_schema_notification.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/01_schemas/001_create_schema_notification.rollback.sql, relativeToChangelogFile: true, stripComments: false}

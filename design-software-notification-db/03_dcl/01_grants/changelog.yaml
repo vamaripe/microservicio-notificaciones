@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-dcl-grants-001
+      author: jesus-gonzalez
+      labels: "dcl,grants"
+      comment: Grants least-privilege del dominio notification.
+      changes:
+        - sqlFile: {path: 001_grants.sql, relativeToChangelogFile: true, splitStatements: false, stripComments: false}
+      rollback:
+        - sql: {sql: "SELECT 1;"}

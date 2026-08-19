@@ -1,0 +1,622 @@
+<title>Guía — Levantar Base de Datos por Ambiente</title>
+<style>
+  :root {
+    --bg:        #F7F8FA;
+    --bg-card:   #FFFFFF;
+    --bg-code:   #EEF1F5;
+    --bg-term:   #1C2128;
+    --border:    #D0D7DE;
+    --text:      #1C2128;
+    --text-mute: #656D76;
+    --accent:    #1A7F37;
+    --accent-bg: #DAFBE1;
+    --warn-bg:   #FFF8C5;
+    --warn-bdr:  #D4A72C;
+    --step-num:  #FFFFFF;
+    --step-bg:   #1A7F37;
+    --tag-bg:    #DDF4FF;
+    --tag-text:  #0550AE;
+    --divider:   #D0D7DE;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #0D1117;
+      --bg-card:   #161B22;
+      --bg-code:   #161B22;
+      --bg-term:   #010409;
+      --border:    #30363D;
+      --text:      #CDD9E5;
+      --text-mute: #768390;
+      --accent:    #3FB950;
+      --accent-bg: #0D2414;
+      --warn-bg:   #272115;
+      --warn-bdr:  #9E6A03;
+      --step-num:  #0D1117;
+      --step-bg:   #3FB950;
+      --tag-bg:    #051D4D;
+      --tag-text:  #79C0FF;
+      --divider:   #21262D;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg:        #F7F8FA;
+    --bg-card:   #FFFFFF;
+    --bg-code:   #EEF1F5;
+    --bg-term:   #1C2128;
+    --border:    #D0D7DE;
+    --text:      #1C2128;
+    --text-mute: #656D76;
+    --accent:    #1A7F37;
+    --accent-bg: #DAFBE1;
+    --warn-bg:   #FFF8C5;
+    --warn-bdr:  #D4A72C;
+    --step-num:  #FFFFFF;
+    --step-bg:   #1A7F37;
+    --tag-bg:    #DDF4FF;
+    --tag-text:  #0550AE;
+    --divider:   #D0D7DE;
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        #0D1117;
+    --bg-card:   #161B22;
+    --bg-code:   #161B22;
+    --bg-term:   #010409;
+    --border:    #30363D;
+    --text:      #CDD9E5;
+    --text-mute: #768390;
+    --accent:    #3FB950;
+    --accent-bg: #0D2414;
+    --warn-bg:   #272115;
+    --warn-bdr:  #9E6A03;
+    --step-num:  #0D1117;
+    --step-bg:   #3FB950;
+    --tag-bg:    #051D4D;
+    --tag-text:  #79C0FF;
+    --divider:   #21262D;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem 1rem 4rem;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 2px solid var(--divider);
+    padding-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .header-eyebrow {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--text);
+  }
+  .header-meta {
+    font-size: .82rem;
+    color: var(--text-mute);
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-top: .25rem;
+  }
+
+  /* CALLOUT */
+  .callout {
+    background: var(--warn-bg);
+    border-left: 3px solid var(--warn-bdr);
+    border-radius: 0 6px 6px 0;
+    padding: .9rem 1.1rem;
+    font-size: .88rem;
+  }
+  .callout strong { color: var(--text); }
+  .callout ul { margin-top: .4rem; padding-left: 1.2rem; }
+  .callout li { margin-top: .2rem; }
+
+  .callout-green {
+    background: var(--accent-bg);
+    border-left-color: var(--accent);
+  }
+
+  /* SECTION */
+  .section-label {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: .6rem;
+  }
+
+  /* PREREQUISITES */
+  .prereqs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .6rem;
+  }
+  .prereq-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .88rem;
+    font-weight: 500;
+  }
+  .prereq-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* FOLDER TREE */
+  .tree {
+    background: var(--bg-term);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: .8rem;
+    color: #CDD9E5;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .tree .hl  { color: #3FB950; font-weight: 600; }
+  .tree .dim { color: #768390; }
+
+  /* ENV BLOCKS */
+  .env-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .env-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .env-card-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .85rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .env-badge {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .2rem .55rem;
+    border-radius: 20px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+  }
+  .env-badge.main  { background: #3FB95020; color: var(--accent); }
+  .env-db {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: .82rem;
+    color: var(--text-mute);
+  }
+  .env-card-body {
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+
+  /* STEPS */
+  .step {
+    display: flex;
+    gap: .85rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--step-bg);
+    color: var(--step-num);
+    font-size: .7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: .15rem;
+  }
+  .step-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+  .step-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .step-desc {
+    font-size: .8rem;
+    color: var(--text-mute);
+    line-height: 1.5;
+  }
+
+  /* CODE */
+  .cmd {
+    background: var(--bg-term);
+    border-radius: 6px;
+    padding: .6rem .9rem;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: .78rem;
+    color: #CDD9E5;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.6;
+  }
+  .cmd .prompt { color: #3FB950; user-select: none; }
+  .cmd .flag   { color: #79C0FF; }
+  .cmd .str    { color: #A5D6FF; }
+  .cmd .comment { color: #768390; }
+
+  /* LIQUIBASE SECTION */
+  .liquibase-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .liquibase-header {
+    padding: .85rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: .9rem;
+  }
+  .liquibase-body {
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+
+  .module-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    font-size: .78rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+  .module-pill {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .2rem .5rem;
+    color: var(--text-mute);
+  }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--divider);
+    padding-top: 1.2rem;
+    font-size: .78rem;
+    color: var(--text-mute);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--divider);
+  }
+</style>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="header-eyebrow">Macroproyecto Design Software · SENA</span>
+    <h1>Guía para levantar la base de datos por ambiente</h1>
+    <div class="header-meta">
+      <span>Infraestructura: Docker + PostgreSQL + Liquibase</span>
+      <span>Julio 2026</span>
+    </div>
+  </header>
+
+  <!-- REGLAS -->
+  <div class="callout">
+    <strong>Antes de comenzar — reglas obligatorias</strong>
+    <ul>
+      <li>Nunca escribas <code>CREATE DATABASE</code> en ningún changelog ni script SQL. El contenedor crea la base de datos automáticamente.</li>
+      <li>Solo debes aplicar los changelogs de Liquibase correspondientes a <strong>tu módulo asignado</strong>.</li>
+      <li>No modifiques los archivos <code>Dockerfile</code>, <code>docker-compose.yml</code> ni los <code>.env.*</code>.</li>
+    </ul>
+  </div>
+
+  <!-- PRERREQUISITOS -->
+  <section>
+    <p class="section-label">Prerrequisitos</p>
+    <div class="prereqs">
+      <div class="prereq-item"><span class="prereq-dot"></span>Docker Desktop instalado y corriendo</div>
+      <div class="prereq-item"><span class="prereq-dot"></span>Git instalado</div>
+      <div class="prereq-item"><span class="prereq-dot"></span>Repositorio de tu módulo clonado</div>
+      <div class="prereq-item"><span class="prereq-dot"></span>Carpeta <code>docker-infra</code> recibida del instructor</div>
+    </div>
+  </section>
+
+  <!-- ESTRUCTURA -->
+  <section>
+    <p class="section-label">Estructura de carpetas esperada</p>
+    <div class="tree">
+carpeta-de-trabajo/
+├── <span class="hl">docker-infra/</span>                 <span class="dim">← carpeta que te entrega el instructor</span>
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── .env.develop
+│   ├── .env.qa
+│   ├── .env.staging
+│   └── .env.main
+│
+└── <span class="hl">design-software-&lt;tu-modulo&gt;-db/</span>  <span class="dim">← tu repo clonado aquí, al mismo nivel</span>
+    └── changelog-master.yaml</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- AMBIENTES -->
+  <section>
+    <p class="section-label">Comandos por ambiente</p>
+    <p style="font-size:.85rem; color:var(--text-mute); margin-bottom:.9rem;">
+      Todos los comandos se ejecutan desde dentro de la carpeta <code>docker-infra/</code>.
+    </p>
+    <div class="env-grid">
+
+      <!-- DEVELOP -->
+      <div class="env-card">
+        <div class="env-card-header">
+          <span class="env-badge">develop</span>
+          <span class="env-db">design-software-develop</span>
+        </div>
+        <div class="env-card-body">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <span class="step-label">Entrar a la carpeta</span>
+              <div class="cmd"><span class="prompt">$ </span>cd docker-infra</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <span class="step-label">Levantar PostgreSQL</span>
+              <span class="step-desc">Crea el contenedor y la base de datos <code>design-software-develop</code>.</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.develop</span> up postgres -d</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <span class="step-label">Aplicar los changelogs de tu módulo</span>
+              <span class="step-desc">Reemplaza <code>&lt;modulo&gt;</code> con el nombre de tu módulo (ver tabla abajo).</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.develop</span> <span class="flag">--profile</span> tooling run <span class="flag">--rm</span> liquibase-<span class="str">&lt;modulo&gt;</span> update</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QA -->
+      <div class="env-card">
+        <div class="env-card-header">
+          <span class="env-badge">qa</span>
+          <span class="env-db">design-software-qa</span>
+        </div>
+        <div class="env-card-body">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <span class="step-label">Entrar a la carpeta</span>
+              <div class="cmd"><span class="prompt">$ </span>cd docker-infra</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <span class="step-label">Levantar PostgreSQL</span>
+              <span class="step-desc">Crea el contenedor y la base de datos <code>design-software-qa</code>.</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.qa</span> up postgres -d</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <span class="step-label">Aplicar los changelogs de tu módulo</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.qa</span> <span class="flag">--profile</span> tooling run <span class="flag">--rm</span> liquibase-<span class="str">&lt;modulo&gt;</span> update</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGING -->
+      <div class="env-card">
+        <div class="env-card-header">
+          <span class="env-badge">staging</span>
+          <span class="env-db">design-software-staging</span>
+        </div>
+        <div class="env-card-body">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <span class="step-label">Entrar a la carpeta</span>
+              <div class="cmd"><span class="prompt">$ </span>cd docker-infra</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <span class="step-label">Levantar PostgreSQL</span>
+              <span class="step-desc">Crea el contenedor y la base de datos <code>design-software-staging</code>.</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.staging</span> up postgres -d</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <span class="step-label">Aplicar los changelogs de tu módulo</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.staging</span> <span class="flag">--profile</span> tooling run <span class="flag">--rm</span> liquibase-<span class="str">&lt;modulo&gt;</span> update</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="env-card">
+        <div class="env-card-header">
+          <span class="env-badge main">main · producción</span>
+          <span class="env-db">design-software-main</span>
+        </div>
+        <div class="env-card-body">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <span class="step-label">Entrar a la carpeta</span>
+              <div class="cmd"><span class="prompt">$ </span>cd docker-infra</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <span class="step-label">Levantar PostgreSQL</span>
+              <span class="step-desc">Crea el contenedor y la base de datos <code>design-software-main</code>.</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.main</span> up postgres -d</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <span class="step-label">Aplicar los changelogs de tu módulo</span>
+              <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.main</span> <span class="flag">--profile</span> tooling run <span class="flag">--rm</span> liquibase-<span class="str">&lt;modulo&gt;</span> update</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- MÓDULOS -->
+  <section>
+    <p class="section-label">Módulos disponibles — reemplaza &lt;modulo&gt;</p>
+    <div class="module-list">
+      <span class="module-pill">academic</span>
+      <span class="module-pill">actors</span>
+      <span class="module-pill">audit</span>
+      <span class="module-pill">document</span>
+      <span class="module-pill">iam</span>
+      <span class="module-pill">monitoring</span>
+      <span class="module-pill">reference</span>
+      <span class="module-pill">scheduling</span>
+      <span class="module-pill">training</span>
+    </div>
+    <p style="font-size:.8rem; color:var(--text-mute); margin-top:.6rem;">
+      Ejemplo — equipo IAM en ambiente develop:
+    </p>
+    <div class="cmd" style="margin-top:.3rem"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.develop</span> <span class="flag">--profile</span> tooling run <span class="flag">--rm</span> liquibase-<span class="str">iam</span> update</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- FLUJO LIQUIBASE -->
+  <section>
+    <p class="section-label">¿Qué hace Liquibase y cómo agregar estructura?</p>
+    <div class="liquibase-block">
+      <div class="liquibase-header">Flujo de trabajo con Liquibase</div>
+      <div class="liquibase-body">
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <span class="step-label">Primera ejecución</span>
+            <span class="step-desc">Liquibase crea automáticamente dos tablas de control en la base de datos: <code>DATABASECHANGELOG</code> (registro de cada changeset aplicado) y <code>DATABASECHANGELOGLOCK</code> (bloqueo para evitar ejecuciones paralelas). Nunca las toques manualmente.</span>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <span class="step-label">Agregar nueva estructura</span>
+            <span class="step-desc">Crea un nuevo archivo SQL o YAML dentro de la carpeta correspondiente de tu repo (ej. <code>01_ddl/03_tables/</code>) y referéncialo en el <code>changelog-master.yaml</code>. Cada changeset debe tener un <code>id</code> único y tu nombre de autor.</span>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <span class="step-label">Volver a correr update</span>
+            <span class="step-desc">Liquibase compara lo que ya está aplicado contra tu changelog. Solo ejecuta los changesets nuevos — los anteriores no se repiten. Esto es lo que permite ir agregando estructura de forma incremental y segura.</span>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <span class="step-label">Bajar el contenedor al terminar</span>
+            <div class="cmd"><span class="prompt">$ </span>docker compose <span class="flag">--env-file</span> <span class="str">.env.develop</span> down
+<span class="comment"># Agrega -v solo si quieres borrar también los datos del volumen</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- VERIFICACION -->
+  <div class="callout callout-green">
+    <strong>¿Cómo verificar que la base de datos quedó bien?</strong>
+    <ul>
+      <li>Conéctate con cualquier cliente SQL (DBeaver, DataGrip, pgAdmin) a <code>localhost:5432</code>.</li>
+      <li>Usa las credenciales del archivo <code>.env</code> del ambiente que levantaste.</li>
+      <li>Debes ver la base de datos <code>design-software-&lt;ambiente&gt;</code> y las tablas <code>DATABASECHANGELOG</code> y <code>DATABASECHANGELOGLOCK</code> si Liquibase ya corrió.</li>
+    </ul>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>Design Software · Macroproyecto SENA 2026</span>
+    <span>Cualquier duda, consulta al instructor antes de modificar los archivos de infraestructura.</span>
+  </footer>
+
+</div>

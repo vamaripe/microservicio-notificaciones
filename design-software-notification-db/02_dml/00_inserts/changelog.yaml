@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-seed-template-001
+      author: jesus-gonzalez
+      labels: "seed,notification"
+      comment: Seed notification templates.
+      changes:
+        - sqlFile: {path: 001_seed_notification_template.sql, relativeToChangelogFile: true, splitStatements: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/02_dml/00_inserts/001_seed_notification_template.rollback.sql, relativeToChangelogFile: true}

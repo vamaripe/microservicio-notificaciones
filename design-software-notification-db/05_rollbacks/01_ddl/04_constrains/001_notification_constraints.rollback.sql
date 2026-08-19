@@ -1,0 +1,1 @@
+ALTER TABLE notification.sent_notification DROP CONSTRAINT IF EXISTS fk_sent_notification_template;

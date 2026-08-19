@@ -1,0 +1,296 @@
+name: design-software
+
+# =============================================================================
+# BASE DE DATOS ÚNICA - todos los módulos apuntan aquí
+#
+# USO:
+#   1. Levantar la base de datos:
+#      docker compose up postgres -d
+#
+#   2. Aplicar changelogs de un módulo:
+#      docker compose --profile tooling run --rm liquibase-<modulo> update
+#
+#   Módulos disponibles:
+#     liquibase-academic | liquibase-actors   | liquibase-audit
+#     liquibase-document | liquibase-iam      | liquibase-monitoring
+#     liquibase-reference| liquibase-scheduling| liquibase-training
+#     liquibase-notification
+# =============================================================================
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: design-software-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: design-software-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: design-software-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.128.0
+    container_name: design-software-otel-collector
+    command: ["--config=/etc/otelcol-contrib/collector-config.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    configs:
+      - source: otel-collector-config
+        target: /etc/otelcol-contrib/collector-config.yaml
+
+  # ---------------------------------------------------------------------------
+  liquibase-academic:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-academic
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-academic-management-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-actors:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-actors
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-actors-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-audit:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-audit
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-audit-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-document:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-document
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-document-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-iam:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-iam
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-iam-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-monitoring:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-monitoring
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-monitoring-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-reference:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-reference
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-reference-data-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-scheduling:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-scheduling
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-scheduling-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-training:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-training
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-training-environment-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+  liquibase-notification:
+    build: .
+    image: ds-liquibase:latest
+    container_name: ds-liquibase-notification
+    profiles: [tooling]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../design-software-notification-db:/workspace
+    entrypoint:
+      - liquibase
+      - --search-path=/workspace
+      - --changeLogFile=changelog/changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+configs:
+  otel-collector-config:
+    content: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+
+      processors:
+        batch:
+
+      exporters:
+        debug:
+          verbosity: normal
+
+      service:
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [debug]
+          metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [debug]

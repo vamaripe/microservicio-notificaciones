@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-constraints-001
+      author: jesus-gonzalez
+      labels: "ddl,base,constraints"
+      comment: Foreign keys for notification tables (FKs in 04_alter).
+      changes:
+        - sqlFile: {path: 001_notification_constraints.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/04_constrains/001_notification_constraints.rollback.sql, relativeToChangelogFile: true, stripComments: false}

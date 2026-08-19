@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS notification.uq_sent_notification_source_event_id;

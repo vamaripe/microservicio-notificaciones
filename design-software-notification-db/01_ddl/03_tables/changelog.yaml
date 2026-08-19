@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: notification-tables-001
+      author: jesus-gonzalez
+      labels: "ddl,base,tables"
+      comment: Create notification tables (sent_notification, notification_template).
+      changes:
+        - sqlFile: {path: notification_tables.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/03_tables/rollback_notification.sql, relativeToChangelogFile: true, stripComments: false}
+  - changeSet:
+      id: notification-tables-002
+      author: jesus-gonzalez
+      labels: "ddl,additive,outbox"
+      comment: HU-NOTIF-002 - Outbox table for at-least-once event publishing (notification.notification.sent).
+      changes:
+        - sqlFile: {path: outbox_table.sql, relativeToChangelogFile: true, stripComments: false}
+      rollback:
+        - sqlFile: {path: ../../05_rollbacks/01_ddl/03_tables/rollback_outbox.sql, relativeToChangelogFile: true, stripComments: false}
